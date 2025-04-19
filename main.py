@@ -34,7 +34,7 @@ def objective(x1, x2):
     try:
         return -(math.sin(x1) * math.cos(x2) * math.tan(x1 + x2) + (3/4) * math.exp(1 - math.sqrt(x1**2)))
     except:
-        return float('inf')  # jika error tan tak terdefinisi
+        return float('inf')
 
 # Fungsi pembantu untuk menggabungkan decode + objective
 def decode_objective(chrom):
