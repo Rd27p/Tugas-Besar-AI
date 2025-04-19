@@ -47,11 +47,15 @@ def fitness(chrom):
 
 # Inisialisasi populasi awal
 def init_population():
-    return [''.join(random.choice('01') for _ in range(CHROM_LENGTH)) for _ in range(POP_SIZE)]
+    population = [] 
+    for _ in range(POP_SIZE):
+        chrom = '' 
+        for _ in range(CHROM_LENGTH):
+            chrom += random.choice('01')
+        population.append(chrom)
+    return population
 
 # Seleksi Tournament
-import math  # Impor modul math
-
 def tournament_selection(pop, tournament_size=TOURNAMENT_SIZE):
     competitors = random.sample(pop, tournament_size)
     best_fitness = -math.inf 
