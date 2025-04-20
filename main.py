@@ -96,7 +96,10 @@ def mutate(chrom):
 # Algoritma utama
 def algoritma_genetik():
     population = init_population()
-    best_chrom = min(population, key=decode_objective)
+    best_chrom = population[0]
+    for chrom in population[1:]:
+        if decode_objective(chrom) < decode_objective(best_chrom):
+            best_chrom = chrom
 
     for gen in range(GEN_MAX):
         new_pop = []
@@ -108,7 +111,13 @@ def algoritma_genetik():
             c2 = mutate(c2)
             new_pop.extend([c1, c2])
         population = new_pop[:POP_SIZE]
-        current_best = min(population, key=decode_objective)
+
+        # Cari best chrom di generasi sekarang secara manual
+        current_best = population[0]
+        for chrom in population[1:]:
+            if decode_objective(chrom) < decode_objective(current_best):
+                current_best = chrom
+
         if decode_objective(current_best) < decode_objective(best_chrom):
             best_chrom = current_best
 
@@ -117,6 +126,7 @@ def algoritma_genetik():
     print("x1 =", x1)
     print("x2 =", x2)
     print("Nilai fungsi =", decode_objective(best_chrom))
+
 
 # Jalankan program
 algoritma_genetik()
