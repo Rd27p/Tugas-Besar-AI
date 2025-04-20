@@ -36,14 +36,10 @@ def objective(x1, x2):
     except:
         return float('inf')
 
-# Fungsi pembantu untuk menggabungkan decode + objective
-def decode_objective(chrom):
-    x1, x2 = decode(chrom)
-    return objective(x1, x2)
-
-# Perhitungan fitness
+# Perhitungan fitness langsung
 def fitness(chrom):
-    return -decode_objective(chrom)
+    x1, x2 = decode(chrom)
+    return -objective(x1, x2)
 
 # Inisialisasi populasi awal
 def init_population():
@@ -60,7 +56,6 @@ def tournament_selection(pop, tournament_size=TOURNAMENT_SIZE):
     competitors = random.sample(pop, tournament_size)
     best_fitness = -math.inf 
     best_individual = None
-    
     for individual in competitors:
         individual_fitness = fitness(individual)
         
@@ -69,7 +64,6 @@ def tournament_selection(pop, tournament_size=TOURNAMENT_SIZE):
             best_individual = individual
     
     return best_individual
-
 
 # Crossover
 def crossover(p1, p2):
@@ -85,10 +79,7 @@ def mutate(chrom):
     for bit in chrom:
         r = random.random() 
         if r < PM:
-            if bit == '0':
-                mutated += '1'
-            else:
-                mutated += '0'
+            mutated += '1' if bit == '0' else '0'
         else:
             mutated += bit
     return mutated
@@ -98,7 +89,7 @@ def algoritma_genetik():
     population = init_population()
     best_chrom = population[0]
     for chrom in population[1:]:
-        if decode_objective(chrom) < decode_objective(best_chrom):
+        if objective(*decode(chrom)) < objective(*decode(best_chrom)):
             best_chrom = chrom
 
     for gen in range(GEN_MAX):
@@ -112,21 +103,20 @@ def algoritma_genetik():
             new_pop.extend([c1, c2])
         population = new_pop[:POP_SIZE]
 
-        # Cari best chrom di generasi sekarang secara manual
+        # Cari best chrom di generasi sekarang
         current_best = population[0]
         for chrom in population[1:]:
-            if decode_objective(chrom) < decode_objective(current_best):
+            if objective(*decode(chrom)) < objective(*decode(current_best)):
                 current_best = chrom
 
-        if decode_objective(current_best) < decode_objective(best_chrom):
+        if objective(*decode(current_best)) < objective(*decode(best_chrom)):
             best_chrom = current_best
 
     x1, x2 = decode(best_chrom)
     print("Kromosom terbaik:", best_chrom)
     print("x1 =", x1)
     print("x2 =", x2)
-    print("Nilai fungsi =", decode_objective(best_chrom))
-
+    print("Nilai fungsi =", objective(x1, x2))
 
 # Jalankan program
 algoritma_genetik()
