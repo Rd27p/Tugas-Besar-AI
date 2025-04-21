@@ -109,12 +109,15 @@ def algoritma_genetik():
                 offspring.append(c2)
             attempts += 1
 
-        # Gabungkan populasi lama dan offspring
+        # Gabungkan populasi lama dan offspring dan hapus duplikasi
         combined_population = population + offspring
-        sorted_population = sorted(combined_population, key=lambda c: fitness(c), reverse=True)
+        unique_population = []
+        for chrom in combined_population:
+            if chrom not in unique_population:
+                unique_population.append(chrom)
 
-        # Pilih populasi yang baru
-        population = sorted_population[:POP_SIZE]
+        # Pilih populasi yang baru, pastikan ukurannya sesuai dengan POP_SIZE
+        population = sorted(unique_population, key=lambda c: fitness(c), reverse=True)[:POP_SIZE]
 
         while len(population) < POP_SIZE:
             population.append(random.choice(population))  # Tambahkan individu acak jika populasi kurang dari POP_SIZE
@@ -143,6 +146,7 @@ def algoritma_genetik():
     print("x1 =", x1)
     print("x2 =", x2)
     print("Nilai fungsi =", objective(x1, x2))
+
 
 # Jalankan program
 algoritma_genetik()
