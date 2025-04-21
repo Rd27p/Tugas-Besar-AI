@@ -11,44 +11,54 @@ TOURNAMENT_SIZE = 4
 REPLACEMENT_SIZE = 2
 
 def decode(chrom):
+    # membagi panjang chromosom menjadi 2 untuk mendapat x1 dan x2
     half = len(chrom) // 2
+    # memisahkan kromosom menjadi x1 dan x2
     x1_bin = chrom[:half]
     x2_bin = chrom[half:]
-    x1 = scale_binary(x1_bin, -10, 10)
-    x2 = scale_binary(x2_bin, -10, 10)
+    # melakukan convert nilai binary ke desimal
+    x1 = convert_to_binary(x1_bin, -10, 10)
+    x2 = convert_to_binary(x2_bin, -10, 10)
     return x1, x2
 
-def scale_binary(bin_str, min_val, max_val):
+def convert_to_binary(chrom, min_val, max_val):
     dec = 0
     # Mengubah biner ke desimal
-    for i in range(len(bin_str)):
-        bit = int(bin_str[i])
-        power = len(bin_str) - i - 1
+    for i in range(len(chrom)):
+        bit = int(chrom[i])
+        power = len(chrom) - i - 1
         dec += bit * (2 ** power)
-    max_bin = (2 ** len(bin_str)) - 1 
+    # max_bin digunakan untuk membagi hasil konversi mentah dari biner ke desimal tetap dalam batas 
+    max_bin = (2 ** len(chrom)) - 1 
     return min_val + (dec / max_bin) * (max_val - min_val)
 
 def objective(x1, x2):
+    # exception untuk menjaga jika terjadi error seperti membagi dengan nilai 0
     try:
         return -(math.sin(x1) * math.cos(x2) * math.tan(x1 + x2) + (3 / 4) * math.exp(1 - math.sqrt(x1 ** 2)))
     except:
         return float('inf')
 
 def fitness(chrom):
+    # mengubah nilai objektif menjadi fitness (dalam GA fitness itu orientasinya fitness tinggi lebih baik jadi harus di konversi ke negatif)
     x1, x2 = decode(chrom)
     return -objective(x1, x2)
 
 def init_population():
+    # method untuk inisialisasi populasi
     return [''.join(random.choice('01') for _ in range(CHROM_LENGTH)) for _ in range(POP_SIZE)]
 
 def tournament_selection(pop, tournament_size=TOURNAMENT_SIZE):
+    # diambil sample untuk tournament secara random dari populasi sebanyakn tournament_size
     competitors = random.sample(pop, tournament_size)
+
     # Cari parent1 (fitness terkecil)
     parent1 = competitors[0]
     for comp in competitors[1:]:
         if fitness(comp) < fitness(parent1):
             parent1 = comp
             
+    # Menghapus parent 1 di list competitors biar tidak terpilih kembali
     competitors.remove(parent1)
 
     # Cari parent2 (fitness terkecil kedua)
@@ -60,32 +70,25 @@ def tournament_selection(pop, tournament_size=TOURNAMENT_SIZE):
     return parent1, parent2
 
 def crossover(p1, p2):
+    # fungsi untuk crossover
+
+    # Dengan menggunakan probabilitas crossover maka ada kesempatan (70% sesuai inisiasi) melakukan crossover
     if random.random() < PC:
+
+        # Titik potong crossover ada 2 point sehingga dipilih disini
         point1 = random.randint(1, CHROM_LENGTH // 2)
         point2 = random.randint(CHROM_LENGTH // 2, CHROM_LENGTH - 1)
 
+        # Melakukan crossover dengan menukar bagian yang menjadi titik point
         c1 = p1[:point1] + p2[point1:point2] + p1[point2:]
         c2 = p2[:point1] + p1[point1:point2] + p2[point2:]
-
-        # Pastikan crossover tidak menyebabkan perubahan yang terlalu besar
-        c1_x1, c1_x2 = decode(c1)
-        c2_x1, c2_x2 = decode(c2)
-
-        # Pembatasan agar tidak keluar dari rentang yang diinginkan
-        c1_x1 = max(-10, min(10, c1_x1))
-        c1_x2 = max(-10, min(10, c1_x2))
-        c2_x1 = max(-10, min(10, c2_x1))
-        c2_x2 = max(-10, min(10, c2_x2))
-
-        # Encode kembali menjadi kromosom
-        c1 = ''.join([format(int((x - (-10)) / 20 * (2 ** (CHROM_LENGTH // 2)) + 0.5), '0' + str(CHROM_LENGTH // 2) + 'b') for x in [c1_x1, c1_x2]])
-        c2 = ''.join([format(int((x - (-10)) / 20 * (2 ** (CHROM_LENGTH // 2)) + 0.5), '0' + str(CHROM_LENGTH // 2) + 'b') for x in [c2_x1, c2_x2]])
 
         return c1, c2
     return p1, p2
 
 def mutate(chrom, PM):
-    mutated_chrom = []  # Daftar untuk menyimpan kromosom yang telah dimutasi
+    # fungsi mutasi terjadinya random sesuai dengan Probabilitas mutasi
+    mutated_chrom = []  # list untuk menyimpan kromosom yang telah dimutasi
     for bit in chrom:
         if bit == '0':  # Jika bit adalah '0'
             if random.random() < PM:  # Jika angka acak lebih kecil dari PM, lakukan mutasi
@@ -102,10 +105,11 @@ def mutate(chrom, PM):
 
 
 def sort_by_fitness(pop):
+    # function untuk sorting
     return sorted(pop, key=fitness)
 
 def get_fitness(chrom):
-    """ Fungsi untuk menghitung fitness dari kromosom """
+    # fungsi untuk mendapat fitnes
     return fitness(chrom)
 
 def algoritma_genetik():
@@ -120,6 +124,7 @@ def algoritma_genetik():
     # Memilih kromosom terbaik berdasarkan fitness terbesar
     best_chrom = max(population, key=get_fitness)  
 
+    # generasi 
     for gen in range(GEN_MAX):
         offspring = []
         parent_data = []
@@ -157,6 +162,7 @@ def algoritma_genetik():
         while len(population) < POP_SIZE:
             population.append(random.choice(population))  # Tambahkan individu acak jika populasi kurang dari POP_SIZE
 
+        # print generasi parent dan child
         print(f"Generasi {gen + 1}:")
         print(f"  Parent 1: {p1} -> x1={decode(p1)[0]:.2f}, x2={decode(p1)[1]:.2f}, fitness={fitness(p1):.4f}")
         print(f"  Parent 2: {p2} -> x1={decode(p2)[0]:.2f}, x2={decode(p2)[1]:.2f}, fitness={fitness(p2):.4f}")
@@ -164,6 +170,7 @@ def algoritma_genetik():
         print(f"  Child 2 : {c2} -> x1={decode(c2)[0]:.2f}, x2={decode(c2)[1]:.2f}, fitness={fitness(c2):.4f}")
         print("")
 
+        # mengecek populasi
         print(f"=== Populasi Generasi {gen + 1} ===")
         for i, chrom in enumerate(population):
             x1, x2 = decode(chrom)
@@ -175,6 +182,7 @@ def algoritma_genetik():
         if fitness(current_best) > fitness(best_chrom):
             best_chrom = current_best
 
+    # Hasil akhir dari total generasi terbentuk untuk best kromosom
     x1, x2 = decode(best_chrom)
     print("\n=== Hasil Akhir ===")
     print("Kromosom terbaik:", best_chrom)
