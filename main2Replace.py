@@ -53,7 +53,6 @@ def init_population():
     return [''.join(random.choice('01') for _ in range(CHROM_LENGTH)) for _ in range(POP_SIZE)]
 
 def tournament_selection(pop, tournament_size=TOURNAMENT_SIZE):
-    # diambil sample untuk tournament secara random dari populasi sebanyakn tournament_size
     competitors = random.sample(pop, tournament_size)
 
     # Cari parent1 (fitness terbesar)
@@ -62,11 +61,13 @@ def tournament_selection(pop, tournament_size=TOURNAMENT_SIZE):
         if fitness(comp) > fitness(parent1):  # fitness terbesar
             parent1 = comp
 
-# Cari parent2 (fitness terbesar kedua)
+    # Cari parent2 yang berbeda dari parent1
+    competitors.remove(parent1)
     parent2 = competitors[0]
     for comp in competitors[1:]:
         if fitness(comp) > fitness(parent2):  # fitness terbesar
             parent2 = comp
+
     return parent1, parent2
 
 def crossover(p1, p2):
