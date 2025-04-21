@@ -83,15 +83,6 @@ def crossover(p1, p2):
         c1 = p1[:point1] + p2[point1:point2] + p1[point2:]
         c2 = p2[:point1] + p1[point1:point2] + p2[point2:]
 
-
-        # Pastikan crossover tidak menyebabkan perubahan yang terlalu besar
-        c1_x1, c1_x2 = decode(c1)
-        c2_x1, c2_x2 = decode(c2)
-
-        # Encode kembali menjadi kromosom
-        c1 = ''.join([format(int((x - (-10)) / 20 * (2 ** (CHROM_LENGTH // 2)) + 0.5), '0' + str(CHROM_LENGTH // 2) + 'b') for x in [c1_x1, c1_x2]])
-        c2 = ''.join([format(int((x - (-10)) / 20 * (2 ** (CHROM_LENGTH // 2)) + 0.5), '0' + str(CHROM_LENGTH // 2) + 'b') for x in [c2_x1, c2_x2]])
-
         return c1, c2
     return p1, p2
 
