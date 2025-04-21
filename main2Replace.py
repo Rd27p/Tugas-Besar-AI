@@ -40,9 +40,13 @@ def objective(x1, x2):
         return float('inf')
 
 def fitness(chrom):
-    # mengubah nilai objektif menjadi fitness (dalam GA fitness itu orientasinya fitness tinggi lebih baik jadi harus di konversi ke negatif)
     x1, x2 = decode(chrom)
-    return -objective(x1, x2)
+    obj_value = objective(x1, x2)
+    # Mengecek apakah fungsi objektif menghasilkan hasil yang valid
+    if obj_value == float('inf') or obj_value == float('-inf'):
+        return float('inf')  # Menandakan bahwa solusi ini tidak valid
+    return -obj_value
+
 
 def init_population():
     # method untuk inisialisasi populasi
@@ -52,21 +56,17 @@ def tournament_selection(pop, tournament_size=TOURNAMENT_SIZE):
     # diambil sample untuk tournament secara random dari populasi sebanyakn tournament_size
     competitors = random.sample(pop, tournament_size)
 
-    # Cari parent1 (fitness terkecil)
+    # Cari parent1 (fitness terbesar)
     parent1 = competitors[0]
     for comp in competitors[1:]:
-        if fitness(comp) < fitness(parent1):
+        if fitness(comp) > fitness(parent1):  # fitness terbesar
             parent1 = comp
-            
-    # Menghapus parent 1 di list competitors biar tidak terpilih kembali
-    competitors.remove(parent1)
 
-    # Cari parent2 (fitness terkecil kedua)
+# Cari parent2 (fitness terbesar kedua)
     parent2 = competitors[0]
     for comp in competitors[1:]:
-        if fitness(comp) < fitness(parent2):
+        if fitness(comp) > fitness(parent2):  # fitness terbesar
             parent2 = comp
-
     return parent1, parent2
 
 def crossover(p1, p2):
@@ -118,7 +118,7 @@ def algoritma_genetik():
     print("=== Populasi Awal ===")
     for i, chrom in enumerate(population):
         x1, x2 = decode(chrom)
-        print(f"{i+1:2d}. {chrom} -> x1={x1:.2f}, x2={x2:.2f}, fitness={fitness(chrom):.4f}")
+        print(f"{i+1:2d}. {chrom} -> x1={x1:.2f}, x2={x2:.2f}, fitness={fitness(chrom):.4f}, nilai fungsi={objective(x1, x2):.4f}")
     print("======================\n")
 
     # Memilih kromosom terbaik berdasarkan fitness terbesar
@@ -164,17 +164,18 @@ def algoritma_genetik():
 
         # print generasi parent dan child
         print(f"Generasi {gen + 1}:")
-        print(f"  Parent 1: {p1} -> x1={decode(p1)[0]:.2f}, x2={decode(p1)[1]:.2f}, fitness={fitness(p1):.4f}")
-        print(f"  Parent 2: {p2} -> x1={decode(p2)[0]:.2f}, x2={decode(p2)[1]:.2f}, fitness={fitness(p2):.4f}")
-        print(f"  Child 1 : {c1} -> x1={decode(c1)[0]:.2f}, x2={decode(c1)[1]:.2f}, fitness={fitness(c1):.4f}")
-        print(f"  Child 2 : {c2} -> x1={decode(c2)[0]:.2f}, x2={decode(c2)[1]:.2f}, fitness={fitness(c2):.4f}")
-        print("")
+        for i, (p1, p2, c1, c2) in enumerate(parent_data):
+            print(f"  Parent 1: {p1} -> x1={decode(p1)[0]:.2f}, x2={decode(p1)[1]:.2f}, fitness={fitness(p1):.4f}, nilai fungsi={objective(*decode(p1)):.4f}")
+            print(f"  Parent 2: {p2} -> x1={decode(p2)[0]:.2f}, x2={decode(p2)[1]:.2f}, fitness={fitness(p2):.4f}, nilai fungsi={objective(*decode(p2)):.4f}")
+            print(f"  Child 1 : {c1} -> x1={decode(c1)[0]:.2f}, x2={decode(c1)[1]:.2f}, fitness={fitness(c1):.4f}, nilai fungsi={objective(*decode(c1)):.4f}")
+            print(f"  Child 2 : {c2} -> x1={decode(c2)[0]:.2f}, x2={decode(c2)[1]:.2f}, fitness={fitness(c2):.4f}, nilai fungsi={objective(*decode(c2)):.4f}")
+            print("")
 
         # mengecek populasi
         print(f"=== Populasi Generasi {gen + 1} ===")
         for i, chrom in enumerate(population):
             x1, x2 = decode(chrom)
-            print(f"{i+1:2d}. {chrom} -> x1={x1:.2f}, x2={x2:.2f}, fitness={fitness(chrom):.4f}")
+            print(f"{i+1:2d}. {chrom} -> x1={x1:.2f}, x2={x2:.2f}, fitness={fitness(chrom):.4f}, nilai fungsi={objective(x1, x2):.4f}")
         print("===============================\n")
 
         # Memilih individu dengan fitness terbaik di setiap generasi
@@ -188,8 +189,7 @@ def algoritma_genetik():
     print("Kromosom terbaik:", best_chrom)
     print("x1 =", x1)
     print("x2 =", x2)
-    print("Nilai fungsi =", objective(x1, x2))
-
+    print("Nilai fungsi =", objective(x1, x2))  # Outputkan nilai fungsi untuk solusi terbaik
 
 # Jalankan program
 algoritma_genetik()
