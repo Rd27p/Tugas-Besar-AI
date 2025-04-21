@@ -3,10 +3,10 @@ import math
 
 # Parameter GA
 POP_SIZE = 10
-CHROM_LENGTH = 5
+CHROM_LENGTH = 10
 GEN_MAX = 5
 PC = 0.7
-PM = 0.01
+PM = 0.25
 TOURNAMENT_SIZE = 4
 REPLACEMENT_SIZE = 2
 
@@ -19,17 +19,13 @@ def decode(chrom):
     return x1, x2
 
 def scale_binary(bin_str, min_val, max_val):
-    dec = 0
-    for i in range(len(bin_str)):
-        bit = int(bin_str[i])
-        power = len(bin_str) - i - 1
-        dec += bit * (2 ** power)
+    dec = int(bin_str, 2)
     max_bin = (2 ** len(bin_str)) - 1
     return min_val + (dec / max_bin) * (max_val - min_val)
 
 def objective(x1, x2):
     try:
-        return -(math.sin(x1) * math.cos(x2) * math.tan(x1 + x2) + (3/4) * math.exp(1 - math.sqrt(x1**2)))
+        return -(math.sin(x1) * math.cos(x2) * math.tan(x1 + x2) + (3 / 4) * math.exp(1 - math.sqrt(x1 ** 2)))
     except:
         return float('inf')
 
@@ -42,12 +38,34 @@ def init_population():
 
 def tournament_selection(pop, tournament_size=TOURNAMENT_SIZE):
     competitors = random.sample(pop, tournament_size)
-    return max(competitors, key=fitness)
+    parent1 = min(competitors, key=fitness)  # Pilih parent pertama dengan fitness terkecil
+    competitors.remove(parent1)  # Hapus parent1 dari daftar
+    parent2 = min(competitors, key=fitness)  # Pilih parent kedua dengan fitness terkecil
+    return parent1, parent2
 
 def crossover(p1, p2):
     if random.random() < PC:
-        point = random.randint(1, CHROM_LENGTH - 1)
-        return p1[:point] + p2[point:], p2[:point] + p1[point:]
+        point1 = random.randint(1, CHROM_LENGTH // 2)
+        point2 = random.randint(CHROM_LENGTH // 2, CHROM_LENGTH - 1)
+
+        c1 = p1[:point1] + p2[point1:point2] + p1[point2:]
+        c2 = p2[:point1] + p1[point1:point2] + p2[point2:]
+
+        # Pastikan crossover tidak menyebabkan perubahan yang terlalu besar
+        c1_x1, c1_x2 = decode(c1)
+        c2_x1, c2_x2 = decode(c2)
+
+        # Pembatasan agar tidak keluar dari rentang yang diinginkan
+        c1_x1 = max(-10, min(10, c1_x1))
+        c1_x2 = max(-10, min(10, c1_x2))
+        c2_x1 = max(-10, min(10, c2_x1))
+        c2_x2 = max(-10, min(10, c2_x2))
+
+        # Encode kembali menjadi kromosom
+        c1 = ''.join([format(int((x - (-10)) / 20 * (2 ** (CHROM_LENGTH // 2)) + 0.5), '0' + str(CHROM_LENGTH // 2) + 'b') for x in [c1_x1, c1_x2]])
+        c2 = ''.join([format(int((x - (-10)) / 20 * (2 ** (CHROM_LENGTH // 2)) + 0.5), '0' + str(CHROM_LENGTH // 2) + 'b') for x in [c2_x1, c2_x2]])
+
+        return c1, c2
     return p1, p2
 
 def mutate(chrom):
@@ -59,48 +77,65 @@ def sort_by_fitness(pop):
 def algoritma_genetik():
     population = init_population()
 
-    # Populasi awal
     print("=== Populasi Awal ===")
     for i, chrom in enumerate(population):
         x1, x2 = decode(chrom)
         print(f"{i+1:2d}. {chrom} -> x1={x1:.2f}, x2={x2:.2f}, fitness={fitness(chrom):.4f}")
     print("======================\n")
 
-    best_chrom = min(population, key=lambda c: objective(*decode(c)))
+    best_chrom = max(population, key=lambda c: fitness(c))  # Memilih kromosom terbaik berdasarkan fitness terbesar
 
     for gen in range(GEN_MAX):
         offspring = []
-        while len(offspring) < REPLACEMENT_SIZE:
-            p1 = tournament_selection(population)
-            p2 = tournament_selection(population)
+        parent_data = []
+        attempts = 0
+        while len(offspring) < REPLACEMENT_SIZE and attempts < 10:
+            p1, p2 = tournament_selection(population)  # Pastikan p1 dan p2 berbeda
             c1, c2 = crossover(p1, p2)
             c1 = mutate(c1)
             c2 = mutate(c2)
-            offspring.append(c1)
-            if len(offspring) < REPLACEMENT_SIZE:
+
+            parent_data.append((p1, p2, c1, c2))
+
+            # Memilih jika fitness anak lebih baik daripada orang tua
+            if fitness(c1) < fitness(p1):  # Jika fitness anak 1 lebih buruk, pertahankan parent
+                offspring.append(p1)
+            else:
+                offspring.append(c1)
+
+            if len(offspring) < REPLACEMENT_SIZE and fitness(c2) < fitness(p2):  # Jika fitness anak 2 lebih buruk
+                offspring.append(p2)
+            else:
                 offspring.append(c2)
+            attempts += 1
 
-        sorted_pop = sort_by_fitness(population)
-        survivors = sorted_pop[:POP_SIZE - REPLACEMENT_SIZE]
-        replaced = sorted_pop[POP_SIZE - REPLACEMENT_SIZE:]
+        # Gabungkan populasi lama dan offspring
+        combined_population = population + offspring
+        sorted_population = sorted(combined_population, key=lambda c: fitness(c), reverse=True)
 
-        print(f"Generasi {gen + 1}: {REPLACEMENT_SIZE} kromosom dengan fitness terendah diganti:")
-        for idx in range(REPLACEMENT_SIZE):
-            print(f"  Ganti: {replaced[idx]} -> {offspring[idx]}")
-        print()
+        # Pilih populasi yang baru
+        population = sorted_population[:POP_SIZE]
 
-        population = survivors + offspring
+        while len(population) < POP_SIZE:
+            population.append(random.choice(population))  # Tambahkan individu acak jika populasi kurang dari POP_SIZE
 
-        # Update kromosom terbaik
-        current_best = min(population, key=lambda c: objective(*decode(c)))
-        if objective(*decode(current_best)) < objective(*decode(best_chrom)):
-            best_chrom = current_best
+        print(f"Generasi {gen + 1}:")
+        print(f"  Parent 1: {p1} -> x1={decode(p1)[0]:.2f}, x2={decode(p1)[1]:.2f}, fitness={fitness(p1):.4f}")
+        print(f"  Parent 2: {p2} -> x1={decode(p2)[0]:.2f}, x2={decode(p2)[1]:.2f}, fitness={fitness(p2):.4f}")
+        print(f"  Child 1 : {c1} -> x1={decode(c1)[0]:.2f}, x2={decode(c1)[1]:.2f}, fitness={fitness(c1):.4f}")
+        print(f"  Child 2 : {c2} -> x1={decode(c2)[0]:.2f}, x2={decode(c2)[1]:.2f}, fitness={fitness(c2):.4f}")
+        print("")
 
         print(f"=== Populasi Generasi {gen + 1} ===")
         for i, chrom in enumerate(population):
             x1, x2 = decode(chrom)
             print(f"{i+1:2d}. {chrom} -> x1={x1:.2f}, x2={x2:.2f}, fitness={fitness(chrom):.4f}")
         print("===============================\n")
+
+        # Memilih individu dengan fitness terbaik di setiap generasi
+        current_best = max(population, key=lambda c: fitness(c))  # Memilih berdasarkan fitness terbesar
+        if fitness(current_best) > fitness(best_chrom):
+            best_chrom = current_best
 
     x1, x2 = decode(best_chrom)
     print("\n=== Hasil Akhir ===")
