@@ -43,9 +43,20 @@ def init_population():
 
 def tournament_selection(pop, tournament_size=TOURNAMENT_SIZE):
     competitors = random.sample(pop, tournament_size)
-    parent1 = min(competitors, key=fitness)  # Pilih parent pertama dengan fitness terkecil
-    competitors.remove(parent1)  # Hapus parent1 dari daftar
-    parent2 = min(competitors, key=fitness)  # Pilih parent kedua dengan fitness terkecil
+    # Cari parent1 (fitness terkecil)
+    parent1 = competitors[0]
+    for comp in competitors[1:]:
+        if fitness(comp) < fitness(parent1):
+            parent1 = comp
+            
+    competitors.remove(parent1)
+
+    # Cari parent2 (fitness terkecil kedua)
+    parent2 = competitors[0]
+    for comp in competitors[1:]:
+        if fitness(comp) < fitness(parent2):
+            parent2 = comp
+
     return parent1, parent2
 
 def crossover(p1, p2):
@@ -73,11 +84,29 @@ def crossover(p1, p2):
         return c1, c2
     return p1, p2
 
-def mutate(chrom):
-    return ''.join('1' if bit == '0' and random.random() < PM else '0' if bit == '1' and random.random() < PM else bit for bit in chrom)
+def mutate(chrom, PM):
+    mutated_chrom = []  # Daftar untuk menyimpan kromosom yang telah dimutasi
+    for bit in chrom:
+        if bit == '0':  # Jika bit adalah '0'
+            if random.random() < PM:  # Jika angka acak lebih kecil dari PM, lakukan mutasi
+                mutated_chrom.append('1')  # Mutasi menjadi '1'
+            else:
+                mutated_chrom.append('0')  # Jika tidak, tetap '0'
+        elif bit == '1':  # Jika bit adalah '1'
+            if random.random() < PM:  # Jika angka acak lebih kecil dari PM, lakukan mutasi
+                mutated_chrom.append('0')  # Mutasi menjadi '0'
+            else:
+                mutated_chrom.append('1')  # Jika tidak, tetap '1'
+
+    return ''.join(mutated_chrom)  # Gabungkan kembali menjadi string kromosom yang telah dimutasi
+
 
 def sort_by_fitness(pop):
     return sorted(pop, key=fitness)
+
+def get_fitness(chrom):
+    """ Fungsi untuk menghitung fitness dari kromosom """
+    return fitness(chrom)
 
 def algoritma_genetik():
     population = init_population()
@@ -88,7 +117,8 @@ def algoritma_genetik():
         print(f"{i+1:2d}. {chrom} -> x1={x1:.2f}, x2={x2:.2f}, fitness={fitness(chrom):.4f}")
     print("======================\n")
 
-    best_chrom = max(population, key=lambda c: fitness(c))  # Memilih kromosom terbaik berdasarkan fitness terbesar
+    # Memilih kromosom terbaik berdasarkan fitness terbesar
+    best_chrom = max(population, key=get_fitness)  
 
     for gen in range(GEN_MAX):
         offspring = []
@@ -97,8 +127,8 @@ def algoritma_genetik():
         while len(offspring) < REPLACEMENT_SIZE and attempts < 10:
             p1, p2 = tournament_selection(population)  # Pastikan p1 dan p2 berbeda
             c1, c2 = crossover(p1, p2)
-            c1 = mutate(c1)
-            c2 = mutate(c2)
+            c1 = mutate(c1, PM)
+            c2 = mutate(c2, PM)
 
             parent_data.append((p1, p2, c1, c2))
 
@@ -122,7 +152,7 @@ def algoritma_genetik():
                 unique_population.append(chrom)
 
         # Pilih populasi yang baru, pastikan ukurannya sesuai dengan POP_SIZE
-        population = sorted(unique_population, key=lambda c: fitness(c), reverse=True)[:POP_SIZE]
+        population = sorted(unique_population, key=get_fitness, reverse=True)[:POP_SIZE]
 
         while len(population) < POP_SIZE:
             population.append(random.choice(population))  # Tambahkan individu acak jika populasi kurang dari POP_SIZE
@@ -141,7 +171,7 @@ def algoritma_genetik():
         print("===============================\n")
 
         # Memilih individu dengan fitness terbaik di setiap generasi
-        current_best = max(population, key=lambda c: fitness(c))  # Memilih berdasarkan fitness terbesar
+        current_best = max(population, key=get_fitness)  # Memilih berdasarkan fitness terbesar
         if fitness(current_best) > fitness(best_chrom):
             best_chrom = current_best
 
