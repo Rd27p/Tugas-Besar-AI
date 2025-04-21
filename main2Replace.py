@@ -19,9 +19,19 @@ def decode(chrom):
     return x1, x2
 
 def scale_binary(bin_str, min_val, max_val):
-    dec = int(bin_str, 2)
-    max_bin = (2 ** len(bin_str)) - 1
+    dec = 0
+    # Mengubah biner ke desimal
+    for i in range(len(bin_str)):
+        bit = int(bin_str[i])
+        power = len(bin_str) - i - 1
+        dec += bit * (2 ** power)
+    
+    # Menghitung nilai maksimum yang bisa dicapai oleh biner
+    max_bin = (2 ** len(bin_str)) - 1 
+    
+    # Skala ke rentang yang diinginkan
     return min_val + (dec / max_bin) * (max_val - min_val)
+
 
 def objective(x1, x2):
     try:
