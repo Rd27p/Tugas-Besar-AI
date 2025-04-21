@@ -69,7 +69,7 @@ def tournament_selection(pop, tournament_size=TOURNAMENT_SIZE):
             parent2 = comp
 
     return parent1, parent2
-
+    
 def crossover(p1, p2):
     # fungsi untuk crossover
 
