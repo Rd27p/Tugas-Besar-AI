@@ -119,14 +119,14 @@ def algoritma_genetik():
     print("=== Populasi Awal ===")
     for i, chrom in enumerate(population):
         x1, x2 = decode(chrom)
-        print(f"{i+1:2d}. {chrom} -> x1={x1:.2f}, x2={x2:.2f}, fitness={fitness(chrom):.4f}, nilai fungsi={objective(x1, x2):.4f}")
+        print(f"{i+1:2d}. {chrom} -> x1= {x1:.2f}, x2= {x2:.2f}, fitness= {fitness(chrom):.4f}, nilai fungsi= {objective(x1, x2):.4f}")
     print("======================\n")
 
     print("=== Populasi Awal (Urut berdasarkan fitness) ===")
     population = sorted(population, key=get_fitness, reverse=True)
     for i, chrom in enumerate(population):
         x1, x2 = decode(chrom)
-        print(f"{i+1:2d}. {chrom} -> x1={x1:.2f}, x2={x2:.2f}, fitness={fitness(chrom):.4f}")
+        print(f"{i+1:2d}. {chrom} -> x1= {x1:.2f}, x2= {x2:.2f}, fitness= {fitness(chrom):.4f}")
     print("======================\n")
 
     # Memilih kromosom terbaik berdasarkan fitness terbesar
@@ -169,17 +169,17 @@ def algoritma_genetik():
 
         # print generasi parent dan child
         print(f"Generasi {gen + 1}:")
-        print(f"  Parent 1: {p1} -> x1={decode(p1)[0]:.2f}, x2={decode(p1)[1]:.2f}, fitness={fitness(p1):.4f}")
-        print(f"  Parent 2: {p2} -> x1={decode(p2)[0]:.2f}, x2={decode(p2)[1]:.2f}, fitness={fitness(p2):.4f}")
-        print(f"  Child 1 : {c1} -> x1={decode(c1)[0]:.2f}, x2={decode(c1)[1]:.2f}, fitness={fitness(c1):.4f}")
-        print(f"  Child 2 : {c2} -> x1={decode(c2)[0]:.2f}, x2={decode(c2)[1]:.2f}, fitness={fitness(c2):.4f}")
+        print(f"  Parent 1: {p1} -> x1= {decode(p1)[0]:.2f}, x2= {decode(p1)[1]:.2f}, fitness= {fitness(p1):.4f}")
+        print(f"  Parent 2: {p2} -> x1= {decode(p2)[0]:.2f}, x2= {decode(p2)[1]:.2f}, fitness= {fitness(p2):.4f}")
+        print(f"  Child 1 : {c1} -> x1= {decode(c1)[0]:.2f}, x2= {decode(c1)[1]:.2f}, fitness= {fitness(c1):.4f}")
+        print(f"  Child 2 : {c2} -> x1= {decode(c2)[0]:.2f}, x2= {decode(c2)[1]:.2f}, fitness= {fitness(c2):.4f}")
         print("")
 
         # mengecek populasi
         print(f"=== Populasi Generasi {gen + 1} ===")
         for i, chrom in enumerate(population):
             x1, x2 = decode(chrom)
-            print(f"{i+1:2d}. {chrom} -> x1={x1:.2f}, x2={x2:.2f}, fitness={fitness(chrom):.4f}, nilai fungsi={objective(x1, x2):.4f}")
+            print(f"{i+1:2d}. {chrom} -> x1= {x1:.2f}, x2= {x2:.2f}, fitness= {fitness(chrom):.4f}, nilai fungsi= {objective(x1, x2):.4f}")
         print("===============================\n")
 
         # Memilih individu dengan fitness terbaik di setiap generasi
