@@ -3,12 +3,12 @@ import math
 
 # Parameter GA
 POP_SIZE = 10
-CHROM_LENGTH = 10
+CHROM_LENGTH = 5
 GEN_MAX = 5
 PC = 0.7
 PM = 0.01
 TOURNAMENT_SIZE = 4
-REPLACEMENT_SIZE = 2  # jumlah kromosom terburuk yang akan direplace
+REPLACEMENT_SIZE = 2
 
 def decode(chrom):
     half = len(chrom) // 2
@@ -38,19 +38,11 @@ def fitness(chrom):
     return -objective(x1, x2)
 
 def init_population():
-    population = []
-    for _ in range(POP_SIZE):
-        chrom = ''.join(random.choice('01') for _ in range(CHROM_LENGTH))
-        population.append(chrom)
-    return population
+    return [''.join(random.choice('01') for _ in range(CHROM_LENGTH)) for _ in range(POP_SIZE)]
 
 def tournament_selection(pop, tournament_size=TOURNAMENT_SIZE):
     competitors = random.sample(pop, tournament_size)
-    best = competitors[0]
-    for individual in competitors[1:]:
-        if fitness(individual) > fitness(best):
-            best = individual
-    return best
+    return max(competitors, key=fitness)
 
 def crossover(p1, p2):
     if random.random() < PC:
@@ -59,45 +51,25 @@ def crossover(p1, p2):
     return p1, p2
 
 def mutate(chrom):
-    mutated = ''
-    for bit in chrom:
-        r = random.random()
-        if r < PM:
-            mutated += '1' if bit == '0' else '0'
-        else:
-            mutated += bit
-    return mutated
+    return ''.join('1' if bit == '0' and random.random() < PM else '0' if bit == '1' and random.random() < PM else bit for bit in chrom)
 
 def sort_by_fitness(pop):
-    # Fungsi untuk mengurutkan berdasarkan fitness tanpa lambda
-    def fitness_comparator(chrom1, chrom2):
-        return fitness(chrom2) - fitness(chrom1)
-    
-    for i in range(len(pop)):
-        for j in range(i + 1, len(pop)):
-            if fitness_comparator(pop[j], pop[i]) > 0:
-                pop[i], pop[j] = pop[j], pop[i]
-    return pop
+    return sorted(pop, key=fitness)
 
 def algoritma_genetik():
     population = init_population()
 
-    # Menampilkan kromosom awal
+    # Populasi awal
     print("=== Populasi Awal ===")
     for i, chrom in enumerate(population):
         x1, x2 = decode(chrom)
         print(f"{i+1:2d}. {chrom} -> x1={x1:.2f}, x2={x2:.2f}, fitness={fitness(chrom):.4f}")
     print("======================\n")
 
-    # Menyimpan kromosom terbaik awal
-    best_chrom = population[0]
-    for chrom in population[1:]:
-        if objective(*decode(chrom)) < objective(*decode(best_chrom)):
-            best_chrom = chrom
+    best_chrom = min(population, key=lambda c: objective(*decode(c)))
 
     for gen in range(GEN_MAX):
         offspring = []
-
         while len(offspring) < REPLACEMENT_SIZE:
             p1 = tournament_selection(population)
             p2 = tournament_selection(population)
@@ -108,30 +80,22 @@ def algoritma_genetik():
             if len(offspring) < REPLACEMENT_SIZE:
                 offspring.append(c2)
 
-        # Pertahankan kromosom terbaik
         sorted_pop = sort_by_fitness(population)
         survivors = sorted_pop[:POP_SIZE - REPLACEMENT_SIZE]
-        replaced = sorted_pop[POP_SIZE - REPLACEMENT_SIZE:]  # yang digantikan
+        replaced = sorted_pop[POP_SIZE - REPLACEMENT_SIZE:]
 
-        # Logging kromosom yang diganti
-        print(f"Generasi {gen + 1}: {REPLACEMENT_SIZE} kromosom diganti:")
-        for idx, chrom in enumerate(replaced):
-            print(f"  Ganti: {chrom} -> ", end='')
-            if idx < len(offspring):
-                print(f"{offspring[idx]}")
-            else:
-                print("(tidak ada pengganti)")
+        print(f"Generasi {gen + 1}: {REPLACEMENT_SIZE} kromosom dengan fitness terendah diganti:")
+        for idx in range(REPLACEMENT_SIZE):
+            print(f"  Ganti: {replaced[idx]} -> {offspring[idx]}")
         print()
 
-        # Gabungkan survivor dan anak-anak
         population = survivors + offspring
 
-        # Update best chrom
-        for chrom in population:
-            if objective(*decode(chrom)) < objective(*decode(best_chrom)):
-                best_chrom = chrom
+        # Update kromosom terbaik
+        current_best = min(population, key=lambda c: objective(*decode(c)))
+        if objective(*decode(current_best)) < objective(*decode(best_chrom)):
+            best_chrom = current_best
 
-        # Tampilkan populasi saat ini
         print(f"=== Populasi Generasi {gen + 1} ===")
         for i, chrom in enumerate(population):
             x1, x2 = decode(chrom)
@@ -139,8 +103,6 @@ def algoritma_genetik():
         print("===============================\n")
 
     x1, x2 = decode(best_chrom)
-
-    # Menampilkan hasil akhir
     print("\n=== Hasil Akhir ===")
     print("Kromosom terbaik:", best_chrom)
     print("x1 =", x1)

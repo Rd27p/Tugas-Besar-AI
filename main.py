@@ -36,7 +36,7 @@ def objective(x1, x2):
     except:
         return float('inf')
 
-# Perhitungan fitness langsung
+# Perhitungan fitness
 def fitness(chrom):
     x1, x2 = decode(chrom)
     return -objective(x1, x2)
@@ -58,11 +58,9 @@ def tournament_selection(pop, tournament_size=TOURNAMENT_SIZE):
     best_individual = None
     for individual in competitors:
         individual_fitness = fitness(individual)
-        
         if individual_fitness > best_fitness:
             best_fitness = individual_fitness
             best_individual = individual
-    
     return best_individual
 
 # Crossover
