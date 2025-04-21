@@ -121,36 +121,40 @@ def algoritma_genetik():
         print(f"{i+1:2d}. {chrom} -> x1={x1:.2f}, x2={x2:.2f}, fitness={fitness(chrom):.4f}, nilai fungsi={objective(x1, x2):.4f}")
     print("======================\n")
 
+    print("=== Populasi Awal (Urut berdasarkan fitness) ===")
+    population = sorted(population, key=get_fitness, reverse=True)
+    for i, chrom in enumerate(population):
+        x1, x2 = decode(chrom)
+        print(f"{i+1:2d}. {chrom} -> x1={x1:.2f}, x2={x2:.2f}, fitness={fitness(chrom):.4f}")
+    print("======================\n")
+
     # Memilih kromosom terbaik berdasarkan fitness terbesar
     best_chrom = max(population, key=get_fitness)  
 
-    # generasi 
+    # looping generasi maximum yang dibuat
     for gen in range(GEN_MAX):
-        offspring = []
-        parent_data = []
+        child = []
         attempts = 0
-        while len(offspring) < REPLACEMENT_SIZE and attempts < 10:
+        while len(child) < REPLACEMENT_SIZE and attempts < 10:
             p1, p2 = tournament_selection(population)  # Pastikan p1 dan p2 berbeda
             c1, c2 = crossover(p1, p2)
             c1 = mutate(c1, PM)
             c2 = mutate(c2, PM)
 
-            parent_data.append((p1, p2, c1, c2))
-
             # Memilih jika fitness anak lebih baik daripada orang tua
             if fitness(c1) < fitness(p1):  # Jika fitness anak 1 lebih buruk, pertahankan parent
-                offspring.append(p1)
+                child.append(p1)
             else:
-                offspring.append(c1)
+                child.append(c1)
 
-            if len(offspring) < REPLACEMENT_SIZE and fitness(c2) < fitness(p2):  # Jika fitness anak 2 lebih buruk
-                offspring.append(p2)
+            if len(child) < REPLACEMENT_SIZE and fitness(c2) < fitness(p2):  # Jika fitness anak 2 lebih buruk
+                child.append(p2)
             else:
-                offspring.append(c2)
+                child.append(c2)
             attempts += 1
 
-        # Gabungkan populasi lama dan offspring dan hapus duplikasi
-        combined_population = population + offspring
+        # Gabungkan populasi lama dan child dan hapus dup
+        combined_population = population + child
         unique_population = []
         for chrom in combined_population:
             if chrom not in unique_population:
@@ -164,12 +168,11 @@ def algoritma_genetik():
 
         # print generasi parent dan child
         print(f"Generasi {gen + 1}:")
-        for i, (p1, p2, c1, c2) in enumerate(parent_data):
-            print(f"  Parent 1: {p1} -> x1={decode(p1)[0]:.2f}, x2={decode(p1)[1]:.2f}, fitness={fitness(p1):.4f}, nilai fungsi={objective(*decode(p1)):.4f}")
-            print(f"  Parent 2: {p2} -> x1={decode(p2)[0]:.2f}, x2={decode(p2)[1]:.2f}, fitness={fitness(p2):.4f}, nilai fungsi={objective(*decode(p2)):.4f}")
-            print(f"  Child 1 : {c1} -> x1={decode(c1)[0]:.2f}, x2={decode(c1)[1]:.2f}, fitness={fitness(c1):.4f}, nilai fungsi={objective(*decode(c1)):.4f}")
-            print(f"  Child 2 : {c2} -> x1={decode(c2)[0]:.2f}, x2={decode(c2)[1]:.2f}, fitness={fitness(c2):.4f}, nilai fungsi={objective(*decode(c2)):.4f}")
-            print("")
+        print(f"  Parent 1: {p1} -> x1={decode(p1)[0]:.2f}, x2={decode(p1)[1]:.2f}, fitness={fitness(p1):.4f}")
+        print(f"  Parent 2: {p2} -> x1={decode(p2)[0]:.2f}, x2={decode(p2)[1]:.2f}, fitness={fitness(p2):.4f}")
+        print(f"  Child 1 : {c1} -> x1={decode(c1)[0]:.2f}, x2={decode(c1)[1]:.2f}, fitness={fitness(c1):.4f}")
+        print(f"  Child 2 : {c2} -> x1={decode(c2)[0]:.2f}, x2={decode(c2)[1]:.2f}, fitness={fitness(c2):.4f}")
+        print("")
 
         # mengecek populasi
         print(f"=== Populasi Generasi {gen + 1} ===")
