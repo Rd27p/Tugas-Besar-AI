@@ -45,7 +45,7 @@ def fitness(chrom):
     # Mengecek apakah fungsi objektif menghasilkan hasil yang valid
     if obj_value == float('inf') or obj_value == float('-inf'):
         return float('inf')  # Menandakan bahwa solusi ini tidak valid
-    return -obj_value
+    return 1 / (1 + obj_value)
 
 
 def init_population():
