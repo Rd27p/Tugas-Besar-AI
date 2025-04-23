@@ -45,7 +45,7 @@ def fitness(chrom):
     # Mengecek apakah fungsi objektif menghasilkan hasil yang valid
     if obj_value == float('inf') or obj_value == float('-inf'):
         return float('inf')  # Menandakan bahwa solusi ini tidak valid
-    return 1 / (1 + obj_value)
+    return -obj_value
 
 
 def init_population():
@@ -126,7 +126,7 @@ def algoritma_genetik():
     population = sorted(population, key=get_fitness, reverse=True)
     for i, chrom in enumerate(population):
         x1, x2 = decode(chrom)
-        print(f"{i+1:2d}. {chrom} -> x1= {x1:.2f}, x2= {x2:.2f}, fitness= {fitness(chrom):.4f}")
+        print(f"{i+1:2d}. {chrom} -> x1= {x1:.2f}, x2= {x2:.2f}, fitness= {fitness(chrom):.4f}, nilai fungsi= {objective(x1, x2):.4f}")
     print("======================\n")
 
     # Memilih kromosom terbaik berdasarkan fitness terbesar
